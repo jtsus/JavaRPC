@@ -22,7 +22,7 @@ public class RabbitMessageController {
 
     private RabbitCredentials credentials;
     @Setter
-    private DataParser parser = GsonDataParser.INSTANCE;
+    private DataSerializer parser = GsonDataSerializer.INSTANCE;
 
     /**
      * Must be called in order to interface with RabbitMQ
@@ -50,7 +50,7 @@ public class RabbitMessageController {
         return factory;
     }
 
-    public void registerExchange(RabbitReceiver receiver, String exchange) {
+    public void registerExchange(RabbitExchange receiver, String exchange) {
         try {
             Channel channel = getChannel();
             channel.exchangeDeclare(exchange, "fanout", false, false, false, null);
@@ -91,7 +91,7 @@ public class RabbitMessageController {
         }
     }
 
-    public String getExchange(RabbitReceiver receiver) {
+    public String getExchange(RabbitExchange receiver) {
         for (RabbitConsumer consumer : consumers) {
             if (consumer.receiver == receiver) {
                 return consumer.exchange;

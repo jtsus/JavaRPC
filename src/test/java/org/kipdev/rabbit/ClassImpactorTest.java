@@ -5,9 +5,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kipdev.rabbit.impact.ClassImpactor;
 import org.kipdev.rabbit.runner.SeparateClassloaderTestRunner;
-import org.kipdev.rabbit.types.IndirectRabbitReceiver;
+import org.kipdev.rabbit.types.IndirectRabbitExchange;
 import org.kipdev.rabbit.types.MockMessageController;
-import org.kipdev.rabbit.types.SimpleRabbitReceiver;
+import org.kipdev.rabbit.types.SimpleRabbitExchange;
 
 import java.util.UUID;
 
@@ -23,17 +23,17 @@ public class ClassImpactorTest {
     public void testSimpleImpact() {
         ClassImpactor.register("org.kipdev.rabbit.types.SimpleRabbitReceiver");
 
-        RabbitMessageController.INSTANCE.registerExchange(SimpleRabbitReceiver.INSTANCE, "simple");
+        RabbitMessageController.INSTANCE.registerExchange(SimpleRabbitExchange.INSTANCE, "simple");
 
-        SimpleRabbitReceiver.INSTANCE.synchronizePlayer(UUID.randomUUID(), 5);
+        SimpleRabbitExchange.INSTANCE.synchronizePlayer(UUID.randomUUID(), 5);
     }
 
     @Test
     public void testIndirectImpact() {
-        RabbitMessageController.INSTANCE.initialize(null, "org.kipdev");
+        RabbitMessageController.INSTANCE.initialize(new RabbitCredentials("host", "username", "password", "vhost"), "org.kipdev");
 
-        RabbitMessageController.INSTANCE.registerExchange(IndirectRabbitReceiver.INSTANCE, "indirect");
+        RabbitMessageController.INSTANCE.registerExchange(IndirectRabbitExchange.INSTANCE, "indirect");
 
-        IndirectRabbitReceiver.INSTANCE.renamePlayer("Justin", "Justin42069");
+        IndirectRabbitExchange.INSTANCE.renamePlayer("Justin", "Justin42069");
     }
 }

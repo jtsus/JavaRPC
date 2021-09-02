@@ -12,10 +12,10 @@ public class RabbitConsumer extends DefaultConsumer {
 
     @Getter
     String exchange;
-    RabbitReceiver receiver;
+    RabbitExchange receiver;
     boolean stopped = false;
 
-    public RabbitConsumer(Channel channel, String exchange, RabbitReceiver receiver) {
+    public RabbitConsumer(Channel channel, String exchange, RabbitExchange receiver) {
         super(channel);
         this.exchange = exchange;
         this.receiver = receiver;

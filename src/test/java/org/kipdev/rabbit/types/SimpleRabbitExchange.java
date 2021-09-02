@@ -1,11 +1,11 @@
 package org.kipdev.rabbit.types;
 
 import org.kipdev.rabbit.RabbitRPC;
-import org.kipdev.rabbit.RabbitReceiver;
+import org.kipdev.rabbit.RabbitExchange;
 
 import java.util.UUID;
 
-public enum SimpleRabbitReceiver implements RabbitReceiver {
+public enum SimpleRabbitExchange implements RabbitExchange {
     INSTANCE;
 
     @RabbitRPC

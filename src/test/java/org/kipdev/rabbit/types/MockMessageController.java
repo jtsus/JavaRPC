@@ -3,7 +3,7 @@ package org.kipdev.rabbit.types;
 import org.kipdev.rabbit.RabbitConsumer;
 import org.kipdev.rabbit.RabbitCredentials;
 import org.kipdev.rabbit.RabbitMessageController;
-import org.kipdev.rabbit.RabbitReceiver;
+import org.kipdev.rabbit.RabbitExchange;
 import org.kipdev.rabbit.impact.ClassImpactor;
 
 import java.util.Arrays;
@@ -20,7 +20,7 @@ public class MockMessageController extends RabbitMessageController {
     }
 
     @Override
-    public void registerExchange(RabbitReceiver receiver, String exchange) {
+    public void registerExchange(RabbitExchange receiver, String exchange) {
         getConsumers().add(new RabbitConsumer(null, exchange, receiver));
     }
 

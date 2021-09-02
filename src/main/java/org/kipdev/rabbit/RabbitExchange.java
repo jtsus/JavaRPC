@@ -6,9 +6,8 @@ import com.google.common.io.ByteStreams;
 import net.pixelverse.gson.internal.Primitives;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
-public interface RabbitReceiver {
+public interface RabbitExchange {
 
     default void receiveMessage(byte[] message) throws Exception {
         ByteArrayDataInput input = ByteStreams.newDataInput(message);
@@ -52,10 +51,6 @@ public interface RabbitReceiver {
             output.writeInt(data.length);
             output.write(data);
         }
-        int yo = 5;
-
-        Object[] test = new Object[] { yo, "hi" };
-        test[0] = yo;
 
         RabbitMessageController.INSTANCE.publish(RabbitMessageController.INSTANCE.getExchange(this), output.toByteArray());
     }

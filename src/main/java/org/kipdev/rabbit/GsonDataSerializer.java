@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * If more speed or capabilities are required then this can be overridden in RabbitMessageController.
  */
-public enum GsonDataParser implements DataParser {
+public enum GsonDataSerializer implements DataSerializer {
     INSTANCE;
 
     private final Map<Type, Object> compatibilities = Maps.newHashMap();
