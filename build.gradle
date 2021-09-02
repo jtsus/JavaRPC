@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
+}
+
+group 'org.kipdev'
+version '0.1'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+configurations {
+    testCompile.extendsFrom shadow
+}
+
+dependencies {
+    shadow group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
+    shadow 'org.reflections:reflections:0.9.12'
+    shadow 'com.rabbitmq:amqp-client:3.4.3'
+    shadow 'com.github.JustinSamaKun:Gson:-SNAPSHOT'
+    shadow group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'
+
+    compile 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+shadowJar {
+    classifier = null // This is now the main jar
+    configurations = [project.configurations.shadow] // ***
+    exclude 'AUTHORS'
+    exclude 'LICENSE'
+    exclude 'README.md'
+    exclude 'META-INF/**'
+    exclude 'changelog.txt'
+    exclude 'credentials.json'
+    exclude 'latestchanges.html'
+}
+
+tasks.build.dependsOn shadowJar
