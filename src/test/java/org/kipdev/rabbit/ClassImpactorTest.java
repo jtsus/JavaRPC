@@ -1,5 +1,6 @@
 package org.kipdev.rabbit;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +22,7 @@ public class ClassImpactorTest {
 
     @Test
     public void testSimpleImpact() {
-        ClassImpactor.register("org.kipdev.rabbit.types.SimpleRabbitReceiver");
+        ClassImpactor.register("org.kipdev.rabbit.types.SimpleRabbitExchange");
 
         RabbitMessageController.INSTANCE.registerExchange(SimpleRabbitExchange.INSTANCE, "simple");
 
@@ -35,5 +36,10 @@ public class ClassImpactorTest {
         RabbitMessageController.INSTANCE.registerExchange(IndirectRabbitExchange.INSTANCE, "indirect");
 
         IndirectRabbitExchange.INSTANCE.renamePlayer("Justin", "Justin42069");
+    }
+
+    @After
+    public void unregister() {
+        RabbitMessageController.INSTANCE.close();
     }
 }

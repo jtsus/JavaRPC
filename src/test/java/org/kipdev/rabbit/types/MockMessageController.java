@@ -25,7 +25,7 @@ public class MockMessageController extends RabbitMessageController {
     }
 
     @Override
-    public boolean publish(String exchange, byte[] data) {
+    public void publish(String exchange, byte[] data) {
         System.out.printf("Sending message %s to %s\n", Arrays.toString(data), exchange);
 
         for (RabbitConsumer consumer : getConsumers()) {
@@ -33,6 +33,10 @@ public class MockMessageController extends RabbitMessageController {
                 consumer.handleDelivery(exchange, null, null, data);
             }
         }
-        return true;
+    }
+
+    @Override
+    public void close() {
+
     }
 }

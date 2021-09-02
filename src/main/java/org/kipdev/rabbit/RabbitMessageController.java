@@ -36,8 +36,7 @@ public class RabbitMessageController {
         try {
             connection = getNewConnectionFactory().newConnection();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error connecting to RabbitMQ");
+            throw new RuntimeException("Error connecting to RabbitMQ", e);
         }
     }
 
@@ -66,16 +65,14 @@ public class RabbitMessageController {
         }
     }
 
-    public boolean publish(String exchange, byte[] data) {
+    public void publish(String exchange, byte[] data) {
         try {
             Channel channel = getChannel();
             channel.basicPublish(exchange, "", new AMQP.BasicProperties.Builder().deliveryMode(1).build(), data);
             channel.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException("Could not send Rabbit message", e);
         }
-        return true;
     }
 
     private Channel getChannel() {
@@ -85,9 +82,7 @@ public class RabbitMessageController {
         try {
             return connection.createChannel();
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Error creating RabbitMQ channel....");
-            return null;
+            throw new RuntimeException("Error creating RabbitMQ channel....", e);
         }
     }
 
@@ -137,5 +132,4 @@ public class RabbitMessageController {
 
         }
     }
-
 }
