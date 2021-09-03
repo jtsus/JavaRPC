@@ -2,6 +2,7 @@ package org.kipdev.rpc.impact;
 
 import javassist.*;
 import lombok.SneakyThrows;
+import org.kipdev.rpc.Exchange;
 import org.kipdev.rpc.RPC;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -14,7 +15,7 @@ import java.util.StringJoiner;
 import java.util.stream.Stream;
 
 public class ClassImpactor {
-    private static final String SOURCE_FORMAT = "public void %s(%s) {org.kipdev.rpc.Exchange.super.sendMessage(\"%1$s\", new Object[] {%s});}";
+    private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
 
     public static boolean writeClasses = true;
 
@@ -50,6 +51,8 @@ public class ClassImpactor {
     }
 
     public static void register(String toLoad) {
+        ClassPool.getDefault().appendClassPath(new ClassClassPath(Exchange.class));
+
         System.out.printf("Attempting to register %s\n", toLoad);
         try {
             CtClass ctClass = ClassPool.getDefault().getCtClass(toLoad);
