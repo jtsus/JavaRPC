@@ -1,4 +1,4 @@
-package org.kipdev.rabbit;
+package org.kipdev.rpc;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -7,7 +7,7 @@ import net.pixelverse.gson.internal.Primitives;
 
 import java.lang.reflect.Method;
 
-public interface RabbitExchange {
+public interface Exchange {
 
     default void receiveMessage(byte[] message) throws Exception {
         ByteArrayDataInput input = ByteStreams.newDataInput(message);
@@ -18,7 +18,7 @@ public interface RabbitExchange {
             int dataSize = input.readInt();
             byte[] paramData = new byte[dataSize];
             input.readFully(paramData);
-            paramValues[i] = RabbitMessageController.INSTANCE.getParser().parse(paramData);
+            paramValues[i] = RPCController.INSTANCE.getParser().parse(paramData);
         }
 
         receiveMessage(methodName, paramValues);
@@ -47,11 +47,11 @@ public interface RabbitExchange {
         output.writeUTF(method);
         output.writeInt(values.length);
         for (Object value : values) {
-            byte[] data = RabbitMessageController.INSTANCE.getParser().write(value);
+            byte[] data = RPCController.INSTANCE.getParser().write(value);
             output.writeInt(data.length);
             output.write(data);
         }
 
-        RabbitMessageController.INSTANCE.publish(RabbitMessageController.INSTANCE.getExchange(this), output.toByteArray());
+        RPCController.INSTANCE.publish(RPCController.INSTANCE.getRegisteredChannel(this), output.toByteArray());
     }
 }

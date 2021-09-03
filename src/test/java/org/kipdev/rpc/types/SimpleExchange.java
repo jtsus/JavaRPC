@@ -1,14 +1,14 @@
-package org.kipdev.rabbit.types;
+package org.kipdev.rpc.types;
 
-import org.kipdev.rabbit.RabbitRPC;
-import org.kipdev.rabbit.RabbitExchange;
+import org.kipdev.rpc.RPC;
+import org.kipdev.rpc.Exchange;
 
 import java.util.UUID;
 
-public enum SimpleRabbitExchange implements RabbitExchange {
+public enum SimpleExchange implements Exchange {
     INSTANCE;
 
-    @RabbitRPC
+    @RPC
     public void synchronizePlayer(UUID id, int bodyCount) {
         System.out.printf("%s's body count updated to %d\n", id, bodyCount);
     }

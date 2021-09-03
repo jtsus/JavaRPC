@@ -1,4 +1,4 @@
-package org.kipdev.rabbit.impact;
+package org.kipdev.rpc.impact;
 
 import java.net.URL;
 import java.net.URLClassLoader;

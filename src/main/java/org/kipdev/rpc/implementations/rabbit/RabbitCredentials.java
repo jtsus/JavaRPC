@@ -1,4 +1,4 @@
-package org.kipdev.rabbit;
+package org.kipdev.rpc.implementations.rabbit;
 
 import lombok.Data;
 

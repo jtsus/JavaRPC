@@ -1,4 +1,4 @@
-package org.kipdev.rabbit;
+package org.kipdev.rpc;
 
 public interface DataSerializer {
     <T> T parse(byte[] data);

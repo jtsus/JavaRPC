@@ -1,37 +1,37 @@
-package org.kipdev.rabbit;
+package org.kipdev.rpc.implementations.rabbit;
 
+import com.google.common.collect.Sets;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.Getter;
-import lombok.Setter;
-import org.kipdev.rabbit.impact.ClassImpactor;
+import org.kipdev.rpc.Exchange;
+import org.kipdev.rpc.RPCController;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Getter
-public class RabbitMessageController {
+public class RabbitMessageController extends RPCController {
 
     public static RabbitMessageController INSTANCE = new RabbitMessageController();
 
-    Connection connection = null;
-    List<RabbitConsumer> consumers = new ArrayList<>();
+    private Connection connection = null;
 
     private RabbitCredentials credentials;
-    @Setter
-    private DataSerializer parser = GsonDataSerializer.INSTANCE;
 
     /**
      * Must be called in order to interface with RabbitMQ
      * @param credentials Credentials of Rabbit
      */
     public void initialize(RabbitCredentials credentials, String basePackage) {
+        RPCController.INSTANCE = INSTANCE = this;
+
         this.credentials = credentials;
 
-        ClassImpactor.registerPackage(basePackage);
+        registerPackage(basePackage);
 
         try {
             connection = getNewConnectionFactory().newConnection();
@@ -49,17 +49,15 @@ public class RabbitMessageController {
         return factory;
     }
 
-    public void registerExchange(RabbitExchange receiver, String exchange) {
+    public void initializeExchange(String channelName, Exchange receiver) {
         try {
             Channel channel = getChannel();
-            channel.exchangeDeclare(exchange, "fanout", false, false, false, null);
+
+            channel.exchangeDeclare(channelName, "fanout", false, false, false, null);
             String queueName = channel.queueDeclare().getQueue();
-            channel.queueBind(queueName, exchange, "");
+            channel.queueBind(queueName, channelName, "");
 
-
-            RabbitConsumer consumer = new RabbitConsumer(channel, exchange, receiver);
-            channel.basicConsume(queueName, true, consumer);
-            consumers.add(consumer);
+            channel.basicConsume(queueName, true, new RabbitConsumer(channel, channelName, this::handleMessage));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,50 +84,19 @@ public class RabbitMessageController {
         }
     }
 
-    public String getExchange(RabbitExchange receiver) {
-        for (RabbitConsumer consumer : consumers) {
-            if (consumer.receiver == receiver) {
-                return consumer.exchange;
-            }
-        }
-        return null;
-    }
-
     public void reconnect() {
         try {
             System.err.println("RabbitMQ wasn't connected... Opening new connection.");
             connection = getNewConnectionFactory().newConnection();
+            Set<String> seen = Sets.newHashSet();
 
-            ArrayList<RabbitConsumer> newConsumers = new ArrayList<>();
-            for (RabbitConsumer consumer : consumers) {
-                Channel channel = getChannel();
-                String exchange = consumer.exchange;
-
-                channel.exchangeDeclare(exchange, "fanout", false, false, false, null);
-                String queueName = channel.queueDeclare().getQueue();
-                channel.queueBind(queueName, exchange, "");
-
-
-                RabbitConsumer newConsumer = new RabbitConsumer(channel, exchange, consumer.receiver);
-                channel.basicConsume(queueName, true, newConsumer);
-                newConsumers.add(newConsumer);
+            for (Map.Entry<String, Exchange> entry : getExchanges().entries()) {
+                if (seen.add(entry.getKey())) {
+                    initializeExchange(entry.getKey(), entry.getValue());
+                }
             }
-
-            consumers.clear();
-            consumers.addAll(newConsumers);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public void close() {
-        try {
-            for (RabbitConsumer consumer : this.consumers) {
-                consumer.close();
-            }
-            connection.close();
-        } catch (IOException ignored) {
-
         }
     }
 }

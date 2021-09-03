@@ -1,4 +1,4 @@
-package org.kipdev.rabbit.impact;
+package org.kipdev.rpc.impact;
 
 import com.google.common.collect.Lists;
 import javassist.ClassPool;
@@ -6,7 +6,7 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.Modifier;
 import lombok.SneakyThrows;
-import org.kipdev.rabbit.RabbitRPC;
+import org.kipdev.rpc.RPC;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -27,7 +27,7 @@ public class ClassImpactor {
     public static void registerPackage(String pkg) {
         Reflections reflections = new Reflections(pkg, LOADER, new MethodAnnotationsScanner(), new SubTypesScanner(false));
 
-        List<Class<? extends Annotation>> processedAnnotations = Lists.newArrayList(RabbitRPC.class);
+        List<Class<? extends Annotation>> processedAnnotations = Lists.newArrayList(RPC.class);
 
         processedAnnotations.stream()
                 .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
@@ -46,7 +46,7 @@ public class ClassImpactor {
             }
             boolean didSomething = false;
             for (CtMethod method : getAllMethods(ctClass.getDeclaredMethods())) {
-                if (method.hasAnnotation(RabbitRPC.class)) {
+                if (method.hasAnnotation(RPC.class)) {
                     impact(ctClass, method);
                     didSomething = true;
                 }
@@ -106,7 +106,7 @@ public class ClassImpactor {
     public static CtMethod[] getAllMethods(CtMethod[] methods) {
         List<CtMethod> methods1 = new ArrayList<>();
         for (CtMethod method : methods) {
-            if (method.hasAnnotation(RabbitRPC.class) && method.getReturnType() == CtClass.voidType) {
+            if (method.hasAnnotation(RPC.class) && method.getReturnType() == CtClass.voidType) {
                 methods1.add(method);
             }
         }

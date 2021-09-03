@@ -1,4 +1,4 @@
-package org.kipdev.rabbit;
+package org.kipdev.rpc;
 
 import com.google.common.collect.Maps;
 import net.pixelverse.gson.SuperGson;

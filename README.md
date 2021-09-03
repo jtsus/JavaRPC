@@ -1,41 +1,46 @@
-#RabbitRPC
+#RPC
 
-Simple Rabbit client for creating RPCs.
+Client for creating RPCs on a variety of platforms. 
+Rabbit implementation included by default but can support a variety of others.
 
 ----
 
 How to use
 --
-Initialize the RabbitMessageController with your RabbitCredentials and base package.
-The package will be used to transform all RabbitExchanges with a @RabbitRPC.
+In this example Rabbit will be used however any other framework can be used just as well.
+
+First, initialize the RabbitMessageController with your RabbitCredentials and base package.
 ```java
 RabbitCredentials credentials = new RabbitCredentials("host", "username", "password", "vhost");
 RabbitMessageController.INSTANCE.initialize(credentials, "org.kipdev");
 ```
-This will allow all RabbitRPCs in the `org.kipdev` package to be used properly. 
-Any that are missing can be manually registered with the ClassImpactor.
+The package will be searched through to transform all contained Exchanges with an @RPC.
+
+This will allow all RPCs in the `org.kipdev` package to be used properly. 
+Any that are missing can be registered manually with the ClassImpactor.
 
 Next, create an exchange with an RPC contained in it like the following.
 ```java
-public enum ExampleExchange implements RabbitExchange {
+public enum ExampleExchange implements Exchange {
     INSTANCE;
 
-    @RabbitRPC
+    @RPC
     public void logChatMessage(String sender, String message) {
         System.out.printf("%s: %s\n", sender, message);
     }
 }
 ```
 
-Finally, register the ExampleExchange with the rabbit channel to send the messages over.
+Finally, register the ExampleExchange with the channel to send the messages over.
 ```java
-RabbitMessageController.INSTANCE.registerExchange(ExampleExchange.INSTANCE, "example");
+RPCController.INSTANCE.registerExchange(ExampleExchange.INSTANCE, "example");
 ```
+RabbitMessageController can also be used here, there is no difference.
 
 Now the logChatMessage has been turned into a fully functioning RPC. When any source invokes the method is 
 it will translate the parameters and method name into an array of bytes to broadcast
 over Rabbit. Then when any listening servers receive the data it will call the original method
-with the deserialized parameters.
+with the deserialized parameters automatically.
 
 ---
 
@@ -44,13 +49,14 @@ Implementation Details
 
 By default, this library uses Gson to handle serialization of parameters. 
 Gson allows for registration of new type adaptors to handle complex types which is supported through GsonDataParser#registerTypeAdapter.
-However, if more fine grain control is required a new DataSerializer can be registered in RabbitMessageController.
+However, if more fine grain control is required a new DataSerializer can be registered in RPCController.
 
-The RabbitMessageController itself can also be overwritten to work with other technologies besides Rabbit.
+The RPCController itself can also be overwritten to work with other technologies besides Rabbit. This is actually what
+RabbitMessageController does under the hood.
 
 If no class impacting is desired, developers are also able to interact with Rabbit more directly by calling 
-RabbitExchange#sendMessage. However, make sure to either overwrite RabbitExchange#receiveMessage or suffix the method
-with $receive. In this case make sure to also omit the @RabbitRPC annotation from the source.
+Exchange#sendMessage. However, make sure to either overwrite Exchange#receiveMessage or suffix the method
+with $receive. In this case make sure to also omit the @RPC annotation from the source.
 
 As an example:
 ```java
