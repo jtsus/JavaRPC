@@ -16,8 +16,9 @@ import java.util.stream.Stream;
 
 public class ClassImpactor {
     private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
+    private static final String SEND_SOURCE_FORMAT = "public void sendMessage(String method, Object[] vals) {org.kipdev.rpc.ExchangeHandler.sendMessage(this, method, vals);}";
 
-    public static boolean writeClasses = true;
+    public static boolean writeClasses = false;
 
     public static void registerPackage(String pkg) {
         try {
@@ -83,6 +84,13 @@ public class ClassImpactor {
         String name = method.getName();
         // Renames the original method in order to use it for receive handling
         method.setName(name + "$receive");
+
+        try {
+            ctClass.getDeclaredMethod("sendMessage", ClassPool.getDefault().get(new String[]{"java.lang.String", "java.lang.Object[]"}));
+        } catch (Throwable ignored) {
+            CtMethod generated = CtMethod.make(SEND_SOURCE_FORMAT, ctClass);
+            ctClass.addMethod(generated);
+        }
 
         // Retrieves the method's signature and parses it into a list of compile time type names.
         String signature = method.getSignature();

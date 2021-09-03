@@ -12,7 +12,8 @@ public enum CustomSendExchange implements Exchange {
     }
 
     @Override
-    public void sendMessage(String method, Object... values) {
+    public void sendMessage(String method, Object[] values) {
+        System.out.println("Sent with style!");
         Exchange.super.sendMessage(method, values);
     }
 }
