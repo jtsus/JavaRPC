@@ -20,7 +20,9 @@ public abstract class RPCController {
     private DataSerializer parser = GsonDataSerializer.INSTANCE;
 
     public void registerPackage(String pkg) {
-        ClassImpactor.registerPackage(pkg);
+        if (pkg != null) {
+            ClassImpactor.registerPackage(pkg);
+        }
     }
 
     public final void registerExchange(String channelName, Exchange receiver) {

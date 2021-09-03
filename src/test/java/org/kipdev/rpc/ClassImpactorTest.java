@@ -17,7 +17,7 @@ public class ClassImpactorTest {
     public void testSimpleImpact() {
         RPCController.INSTANCE = MockMessageController.INSTANCE;
 
-        ClassImpactor.register("org.kipdev.rpc.types.SimpleExchange");
+        ClassImpactor.registerPackage("org.kipdev.rpc.types", getClass());
 
         RPCController.INSTANCE.registerExchange("simple", SimpleExchange.INSTANCE);
 

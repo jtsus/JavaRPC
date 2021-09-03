@@ -11,9 +11,13 @@ import java.net.URLClassLoader;
 public class DynamicClassLoader extends URLClassLoader {
 
     public DynamicClassLoader(URL...url) {
-        super(url, DynamicClassLoader.class.getClassLoader());
-        if (DynamicClassLoader.class.getClassLoader() instanceof URLClassLoader) {
-            for (URL url1 : ((URLClassLoader) DynamicClassLoader.class.getClassLoader()).getURLs()) {
+        this(DynamicClassLoader.class.getClassLoader(), url);
+    }
+
+    public DynamicClassLoader(ClassLoader loader, URL...url) {
+        super(url, loader);
+        if (loader instanceof URLClassLoader) {
+            for (URL url1 : ((URLClassLoader) loader).getURLs()) {
                 this.addURL(url1);
             }
         }

@@ -1,39 +1,52 @@
 package org.kipdev.rpc.impact;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.Modifier;
+import javassist.*;
 import lombok.SneakyThrows;
 import org.kipdev.rpc.RPC;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class ClassImpactor {
-    private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
+    private static final String SOURCE_FORMAT = "public void %s(%s) {org.kipdev.rpc.Exchange.super.sendMessage(\"%1$s\", new Object[] {%s});}";
 
     public static boolean writeClasses = true;
 
     public static void registerPackage(String pkg) {
-        Reflections reflections = new Reflections(pkg, new DynamicClassLoader(), new MethodAnnotationsScanner(), new SubTypesScanner(false));
+        try {
+            Reflections reflections = new Reflections(pkg, new DynamicClassLoader(), new MethodAnnotationsScanner(), new SubTypesScanner(false));
 
-        Stream.of(RPC.class)
-                .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
-                .map(Method::getDeclaringClass)
-                .map(Class::getCanonicalName)
-                .distinct()
-                .forEach(ClassImpactor::register);
+            Stream.of(RPC.class)
+                    .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
+                    .map(Method::getDeclaringClass)
+                    .map(Class::getCanonicalName)
+                    .distinct()
+                    .forEach(ClassImpactor::register);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void registerPackage(String pkg, Class<?> ref) {
+        try {
+            ClassPool.getDefault().appendClassPath(new ClassClassPath(ref));
+            Reflections reflections = new Reflections(pkg, new DynamicClassLoader(ref.getClassLoader()), new MethodAnnotationsScanner(), new SubTypesScanner(false));
+
+            Stream.of(RPC.class)
+                    .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
+                    .map(Method::getDeclaringClass)
+                    .map(Class::getCanonicalName)
+                    .distinct()
+                    .forEach(ClassImpactor::register);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void register(String toLoad) {
