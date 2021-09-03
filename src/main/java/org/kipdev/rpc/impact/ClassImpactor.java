@@ -28,7 +28,7 @@ public class ClassImpactor {
                     .map(Method::getDeclaringClass)
                     .map(Class::getCanonicalName)
                     .distinct()
-                    .forEach(ClassImpactor::register);
+                    .forEach(name -> register(name, ClassImpactor.class));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,13 +44,13 @@ public class ClassImpactor {
                     .map(Method::getDeclaringClass)
                     .map(Class::getCanonicalName)
                     .distinct()
-                    .forEach(ClassImpactor::register);
+                    .forEach(name -> register(name, ref));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void register(String toLoad) {
+    public static void register(String toLoad, Class<?> ref) {
         ClassPool.getDefault().appendClassPath(new ClassClassPath(Exchange.class));
 
         System.out.printf("Attempting to register %s\n", toLoad);
@@ -69,7 +69,7 @@ public class ClassImpactor {
                 }
             }
             if (didSomething) {
-                ctClass.toClass(ClassImpactor.class.getClassLoader());
+                ctClass.toClass(ref.getClassLoader(), ref.getProtectionDomain());
                 if (writeClasses) {
                     ctClass.writeFile();
                 }

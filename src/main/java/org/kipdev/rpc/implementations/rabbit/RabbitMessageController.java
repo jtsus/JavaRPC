@@ -25,6 +25,7 @@ public class RabbitMessageController extends RPCController {
      * Must be called in order to interface with RabbitMQ
      * @param credentials Credentials of Rabbit
      */
+    @SuppressWarnings("unused")
     public void initialize(RabbitCredentials credentials, String basePackage) {
         RPCController.INSTANCE = INSTANCE = this;
 
