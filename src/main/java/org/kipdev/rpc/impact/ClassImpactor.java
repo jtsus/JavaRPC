@@ -1,6 +1,9 @@
 package org.kipdev.rpc.impact;
 
 import javassist.*;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.AttributeInfo;
+import javassist.bytecode.annotation.Annotation;
 import lombok.SneakyThrows;
 import org.kipdev.rpc.Exchange;
 import org.kipdev.rpc.RPC;
@@ -10,6 +13,7 @@ import org.reflections.scanners.SubTypesScanner;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
@@ -18,7 +22,7 @@ public class ClassImpactor {
     private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
     private static final String SEND_SOURCE_FORMAT = "public void sendMessage(String method, Object[] vals) {org.kipdev.rpc.ExchangeHandler.sendMessage(this, method, vals);}";
 
-    public static boolean writeClasses = false;
+    public static boolean writeClasses = true;
 
     public static void registerPackage(String pkg) {
         try {
@@ -85,6 +89,16 @@ public class ClassImpactor {
         // Renames the original method in order to use it for receive handling
         method.setName(name + "$receive");
 
+        // Retrieve and remove the annotations from the original method
+        AttributeInfo parameterAttributeInfo = method.getMethodInfo().getAttribute(AnnotationsAttribute.visibleTag);
+        AnnotationsAttribute parameterAtrribute = ((AnnotationsAttribute) parameterAttributeInfo);
+        Annotation[] annotations = parameterAtrribute.getAnnotations();
+        annotations = Arrays.stream(annotations)
+                .filter(annotation -> !annotation.getTypeName().equals("org.kipdev.rpc.RPC"))
+                .toArray(Annotation[]::new);
+        parameterAtrribute.setAnnotations(new Annotation[0]);
+
+
         try {
             ctClass.getDeclaredMethod("sendMessage", ClassPool.getDefault().get(new String[]{"java.lang.String", "java.lang.Object[]"}));
         } catch (Throwable ignored) {
@@ -121,6 +135,11 @@ public class ClassImpactor {
                 paramValues
         );
         CtMethod generated = CtMethod.make(source, ctClass);
+
+        // Add the annotations back to the generated method
+        AnnotationsAttribute annotationsAttribute = new AnnotationsAttribute(generated.getMethodInfo().getConstPool(), AnnotationsAttribute.visibleTag);
+        annotationsAttribute.setAnnotations(annotations);
+        generated.getMethodInfo().addAttribute(annotationsAttribute);
 
         // This can not be included in source due to obfuscation issues
         generated.getMethodInfo().setDescriptor(signature);
