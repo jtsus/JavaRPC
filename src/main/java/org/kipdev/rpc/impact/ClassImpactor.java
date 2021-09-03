@@ -1,6 +1,5 @@
 package org.kipdev.rpc.impact;
 
-import com.google.common.collect.Lists;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -14,6 +13,7 @@ import org.reflections.scanners.SubTypesScanner;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -27,7 +27,7 @@ public class ClassImpactor {
     public static void registerPackage(String pkg) {
         Reflections reflections = new Reflections(pkg, LOADER, new MethodAnnotationsScanner(), new SubTypesScanner(false));
 
-        List<Class<? extends Annotation>> processedAnnotations = Lists.newArrayList(RPC.class);
+        List<Class<? extends Annotation>> processedAnnotations = Collections.singletonList(RPC.class);
 
         processedAnnotations.stream()
                 .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
@@ -114,7 +114,7 @@ public class ClassImpactor {
     }
 
     public static List<String> getTypeNamesFromSignature(String signature) {
-        List<String> params = Lists.newArrayList();
+        List<String> params = new ArrayList<>();
         signature = signature.substring(1, signature.indexOf(')'));
         for (int i = 0; i < signature.length(); i++) {
             String name;

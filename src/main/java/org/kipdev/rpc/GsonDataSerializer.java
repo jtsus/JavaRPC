@@ -1,11 +1,11 @@
 package org.kipdev.rpc;
 
-import com.google.common.collect.Maps;
 import net.pixelverse.gson.SuperGson;
 import net.pixelverse.gson.SuperGsonBuilder;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -16,8 +16,8 @@ import java.util.Map;
 public enum GsonDataSerializer implements DataSerializer {
     INSTANCE;
 
-    private final Map<Type, Object> compatibilities = Maps.newHashMap();
-    private final Map<Class<?>, Object> hierarchyCompatibilities = Maps.newHashMap();
+    private final Map<Type, Object> compatibilities = new HashMap<>();
+    private final Map<Class<?>, Object> hierarchyCompatibilities = new HashMap<>();
 
     private SuperGson gson = new SuperGson();
 

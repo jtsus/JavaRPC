@@ -1,17 +1,19 @@
 package org.kipdev.rpc;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import lombok.Getter;
 import lombok.Setter;
 import org.kipdev.rpc.impact.ClassImpactor;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class RPCController {
     public static RPCController INSTANCE;
 
     @Getter
-    private final Multimap<String, Exchange> exchanges = Multimaps.synchronizedMultimap(HashMultimap.create());
+    private final Map<String, List<Exchange>> exchanges = new ConcurrentHashMap<>();
 
     @Setter
     @Getter
@@ -25,7 +27,7 @@ public abstract class RPCController {
         if (exchanges.containsKey(channelName)) {
             return;
         }
-        exchanges.put(channelName, receiver);
+        exchanges.computeIfAbsent(channelName, n -> new CopyOnWriteArrayList<>()).add(receiver);
         initializeExchange(channelName, receiver);
     }
 

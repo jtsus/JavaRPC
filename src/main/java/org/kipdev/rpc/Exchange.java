@@ -1,23 +1,28 @@
 package org.kipdev.rpc;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.pixelverse.gson.internal.Primitives;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public interface Exchange {
 
     default void receiveMessage(byte[] message) throws Exception {
-        ByteArrayDataInput input = ByteStreams.newDataInput(message);
-        String methodName = input.readUTF();
-        int paramCount = input.readInt();
+        ByteBuffer buf = ByteBuffer.wrap(message);
+        int nameLen = buf.getInt();
+        byte[] nameData = new byte[nameLen];
+        buf.get(nameData);
+        String methodName = new String(nameData);
+        int paramCount = buf.getInt();
         Object[] paramValues = new Object[paramCount];
         for (int i = 0; i < paramCount; i++) {
-            int dataSize = input.readInt();
+            int dataSize = buf.getInt();
             byte[] paramData = new byte[dataSize];
-            input.readFully(paramData);
+            buf.get(paramData);
             paramValues[i] = RPCController.INSTANCE.getParser().parse(paramData);
         }
 
@@ -43,15 +48,21 @@ public interface Exchange {
     }
 
     default void sendMessage(String method, Object... values) {
-        ByteArrayDataOutput output = ByteStreams.newDataOutput();
-        output.writeUTF(method);
-        output.writeInt(values.length);
-        for (Object value : values) {
-            byte[] data = RPCController.INSTANCE.getParser().write(value);
-            output.writeInt(data.length);
-            output.write(data);
-        }
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] methodNameBytes = method.getBytes(StandardCharsets.UTF_8);
+            ByteUtils.putInt(methodNameBytes.length, bos);
+            bos.write(methodNameBytes);
+            ByteUtils.putInt(values.length, bos);
+            for (Object value : values) {
+                byte[] data = RPCController.INSTANCE.getParser().write(value);
+                ByteUtils.putInt(data.length, bos);
+                bos.write(data);
+            }
 
-        RPCController.INSTANCE.publish(RPCController.INSTANCE.getRegisteredChannel(this), output.toByteArray());
+            RPCController.INSTANCE.publish(RPCController.INSTANCE.getRegisteredChannel(this), bos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not send message on method %s with parameters %s", method, Arrays.toString(values)), e);
+        }
     }
 }

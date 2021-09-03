@@ -1,6 +1,5 @@
 package org.kipdev.rpc.implementations.rabbit;
 
-import com.google.common.collect.Sets;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -10,8 +9,8 @@ import org.kipdev.rpc.Exchange;
 import org.kipdev.rpc.RPCController;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Getter
 public class RabbitMessageController extends RPCController {
@@ -88,11 +87,10 @@ public class RabbitMessageController extends RPCController {
         try {
             System.err.println("RabbitMQ wasn't connected... Opening new connection.");
             connection = getNewConnectionFactory().newConnection();
-            Set<String> seen = Sets.newHashSet();
 
-            for (Map.Entry<String, Exchange> entry : getExchanges().entries()) {
-                if (seen.add(entry.getKey())) {
-                    initializeExchange(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, List<Exchange>> entry : getExchanges().entrySet()) {
+                if (!entry.getValue().isEmpty()) {
+                    initializeExchange(entry.getKey(), entry.getValue().get(0));
                 }
             }
         } catch (IOException e) {
