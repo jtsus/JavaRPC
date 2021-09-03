@@ -16,20 +16,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ClassImpactor {
     private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
 
-    private static final DynamicClassLoader LOADER = new DynamicClassLoader();
-
     public static boolean writeClasses = true;
 
     public static void registerPackage(String pkg) {
-        Reflections reflections = new Reflections(pkg, LOADER, new MethodAnnotationsScanner(), new SubTypesScanner(false));
+        Reflections reflections = new Reflections(pkg, new DynamicClassLoader(), new MethodAnnotationsScanner(), new SubTypesScanner(false));
 
-        List<Class<? extends Annotation>> processedAnnotations = Collections.singletonList(RPC.class);
-
-        processedAnnotations.stream()
+        Stream.of(RPC.class)
                 .flatMap(clazz -> reflections.getMethodsAnnotatedWith(clazz).stream())
                 .map(Method::getDeclaringClass)
                 .map(Class::getCanonicalName)
@@ -38,10 +37,12 @@ public class ClassImpactor {
     }
 
     public static void register(String toLoad) {
+        System.out.printf("Attempting to register %s\n", toLoad);
         try {
             CtClass ctClass = ClassPool.getDefault().getCtClass(toLoad);
             if (ctClass.isFrozen()) {
                 // Hopefully it was impacted right
+                System.out.println("Class already loaded.");
                 return;
             }
             boolean didSomething = false;
