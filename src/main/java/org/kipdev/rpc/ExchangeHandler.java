@@ -10,8 +10,9 @@ public class ExchangeHandler {
 
     public static void sendMessage(Exchange exchange, String method, Object[] values) {
         try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ByteArrayOutputStream bos;
             byte[] methodNameBytes = method.getBytes(StandardCharsets.UTF_8);
+            bos = new ByteArrayOutputStream(4 + methodNameBytes.length + values.length + values.length * 4);
             ByteUtils.putInt(methodNameBytes.length, bos);
             bos.write(methodNameBytes);
             ByteUtils.putInt(values.length, bos);

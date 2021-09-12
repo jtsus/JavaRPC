@@ -11,11 +11,19 @@ import org.kipdev.rpc.RPCController;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Getter
 public class RabbitMessageController extends RPCController {
 
     public static RabbitMessageController INSTANCE = new RabbitMessageController();
+
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName("Rabbit RPC Thread");
+        return thread;
+    });
 
     private Connection connection = null;
 
@@ -64,13 +72,15 @@ public class RabbitMessageController extends RPCController {
     }
 
     public void publish(String exchange, byte[] data) {
-        try {
-            Channel channel = getChannel();
-            channel.basicPublish(exchange, "", new AMQP.BasicProperties.Builder().deliveryMode(1).build(), data);
-            channel.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Could not send Rabbit message", e);
-        }
+        executor.submit(() -> {
+            try {
+                Channel channel = getChannel();
+                channel.basicPublish(exchange, "", new AMQP.BasicProperties.Builder().deliveryMode(1).build(), data);
+                channel.close();
+            } catch (Exception e) {
+                throw new RuntimeException("Could not send Rabbit message", e);
+            }
+        });
     }
 
     private Channel getChannel() {

@@ -22,7 +22,7 @@ public class ClassImpactor {
     private static final String SOURCE_FORMAT = "public void %s(%s) {sendMessage(\"%1$s\", new Object[] {%s});}";
     private static final String SEND_SOURCE_FORMAT = "public void sendMessage(String method, Object[] vals) {org.kipdev.rpc.ExchangeHandler.sendMessage(this, method, vals);}";
 
-    public static boolean writeClasses = true;
+    public static boolean writeClasses = false;
 
     public static void registerPackage(String pkg) {
         try {
