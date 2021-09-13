@@ -20,7 +20,8 @@ dependencies {
     shade group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
     shade 'org.reflections:reflections:0.9.12'
     shade 'com.rabbitmq:amqp-client:3.4.3'
-    shade 'com.github.JustinSamaKun:Gson:37461e155b'
+    shade 'com.google.code.gson:gson:2.8.6'
+    shade files('libs/Gson.jar')
 
     compile 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
