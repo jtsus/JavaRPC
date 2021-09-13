@@ -36,6 +36,7 @@ public interface Exchange {
                         }
                     }
 
+                    declaredMethod.setAccessible(true);
                     declaredMethod.invoke(this, values);
                     return;
                 }
