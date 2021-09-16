@@ -4,16 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.kipdev.rpc.impact.ClassImpactor;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class RPCController {
     public static RPCController INSTANCE;
 
     @Getter
-    private final Map<String, List<Exchange>> exchanges = new ConcurrentHashMap<>();
+    private final Map<String, Exchange> exchanges = new ConcurrentHashMap<>();
 
     @Setter
     @Getter
@@ -26,30 +24,31 @@ public abstract class RPCController {
     }
 
     public final void registerExchange(String channelName, Exchange receiver) {
-        if (exchanges.containsKey(channelName)) {
-            return;
-        }
-        exchanges.computeIfAbsent(channelName, n -> new CopyOnWriteArrayList<>()).add(receiver);
+        dismissExchange(channelName);
+        exchanges.put(channelName, receiver);
         initializeExchange(channelName, receiver);
     }
 
     public void initializeExchange(String channelName, Exchange exchange) {}
 
+    public void dismissExchange(String channelName) {}
+
     public abstract void publish(String exchange, byte[] data);
 
     public void handleMessage(String channel, byte[] data) {
-        for (Exchange exchange : exchanges.get(channel)) {
-            try {
+        Exchange exchange = exchanges.get(channel);
+        try {
+            if (exchange != null) {
                 exchange.receiveMessage(data);
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public String getRegisteredChannel(Exchange exchange) {
         for (String key : exchanges.keySet()) {
-            if (exchanges.get(key).contains(exchange)) {
+            if (exchanges.get(key) == exchange) {
                 return key;
             }
         }

@@ -11,11 +11,15 @@ import org.kipdev.rpc.RPCController;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class RabbitMessageController extends RPCController {
 
     public static RabbitMessageController INSTANCE = new RabbitMessageController();
+
+    private final Map<String, Channel> channelMap = new ConcurrentHashMap<>();
 
     private Connection connection = null;
 
@@ -58,8 +62,19 @@ public class RabbitMessageController extends RPCController {
             channel.queueBind(queueName, channelName, "");
 
             channel.basicConsume(queueName, true, new RabbitConsumer(channel, channelName, this::handleMessage));
+            channelMap.put(channelName, channel);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void dismissExchange(String channelName) {
+        Channel remove = channelMap.remove(channelName);
+        if (remove != null) {
+            try {
+                remove.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -89,10 +104,16 @@ public class RabbitMessageController extends RPCController {
             System.err.println("RabbitMQ wasn't connected... Opening new connection.");
             connection = getNewConnectionFactory().newConnection();
 
-            for (Map.Entry<String, List<Exchange>> entry : getExchanges().entrySet()) {
-                if (!entry.getValue().isEmpty()) {
-                    initializeExchange(entry.getKey(), entry.getValue().get(0));
+            try {
+                for (Channel channel : channelMap.values()) {
+                    channel.close();
                 }
+            } catch (Throwable ignored) {
+            }
+            channelMap.clear();
+
+            for (Map.Entry<String, Exchange> entry : getExchanges().entrySet()) {
+                initializeExchange(entry.getKey(), entry.getValue());
             }
         } catch (IOException e) {
             e.printStackTrace();
